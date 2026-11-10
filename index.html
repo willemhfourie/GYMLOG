@@ -531,7 +531,7 @@ function exHTML(ex){
  let chips='';
  if(ex.variants.length>1){chips=`<div class="chips">${ex.variants.map((x,i)=>`<button class="chip" data-a="variant" data-id="${ex.id}" data-i="${i}" aria-pressed="${i===ex.active}">${esc(x.name)}</button>`).join('')}${ex.rotate?'<span class="hint">Switches each workout</span>':''}</div>`}
  return `<article class="ex${all?' done':''}" data-id="${ex.id}">
-  <div class="ex-head"><div class="ttl"><span class="grip" role="button" tabindex="0" aria-label="Drag to reorder ${esc(v.name)}">${gripSvg}</span><h3>${all?checkSvg:''}${esc(v.name)}</h3></div>${spark(logs)}</div>
+  <div class="ex-head"><div class="ttl"><span class="grip" role="button" tabindex="0" aria-label="Drag to reorder ${esc(v.name)}">${gripSvg}</span><h3>${all?checkSvg:''}${esc(v.name)}</h3></div></div>
   ${chips}
   <div class="row">
    <button class="load" data-a="edit" data-id="${ex.id}" aria-label="Edit ${esc(v.name)}">
