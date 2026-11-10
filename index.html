@@ -133,6 +133,42 @@ textarea.text{min-height:64px;resize:vertical}
 .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:500;font-size:15px;z-index:30;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.show{opacity:1}
 .topbtns{display:flex;gap:8px}
+.s-items li.crow{display:block;padding:12px 0}
+.cr-n{font-size:15px}
+.cmp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.cc{display:flex;flex-direction:column;gap:3px;padding:8px 10px;border-radius:10px;background:var(--surface)}
+.cc-l{font-size:11px;color:var(--muted)}
+.cc-v{font:700 21px/1.1 "Barlow Condensed",sans-serif;font-variant-numeric:tabular-nums}
+.cc b{font-size:13px}
+.bchart svg.pchart{height:auto}
+.lg{display:inline-block;width:16px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.lg-raw{background:var(--muted)}
+.lg-avg{background:var(--purple);height:4px;margin-left:14px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:14px}
+.cal-h{font-size:12px;color:var(--muted);text-align:center}
+.cal-d{aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;font:600 15px/1 "Barlow Condensed",sans-serif;color:var(--muted);background:var(--surface)}
+.cal.mini{gap:2px;margin-top:4px}
+.cal.mini .cal-d{border-radius:2px}
+.cal-d.t0,.lgd.t0{background:var(--green);color:var(--green-ink)}
+.cal-d.t1,.lgd.t1{background:var(--purple);color:var(--bg)}
+.cal-d.t2,.lgd.t2{background:var(--text);color:var(--bg)}
+.cal-d.today{box-shadow:inset 0 0 0 2px var(--text)}
+.cal-d.today.t2{box-shadow:inset 0 0 0 2px var(--green)}
+.yr{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 12px;margin-top:14px}
+.yr-m{font-size:12px;color:var(--muted)}
+.yr-h{font:700 24px/1 "Barlow Condensed",sans-serif;margin:22px 0 0}
+.wk{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:14px}
+.wk-c{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+.wk-l{font-size:12px;color:var(--muted)}
+.wk-d{width:100%;max-width:44px}
+.wk-n{font-size:11px;color:var(--muted);text-align:center;min-height:14px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.calnav{display:flex;align-items:center;justify-content:space-between;margin-top:18px}
+.calnav span{font:700 22px/1 "Barlow Condensed",sans-serif}
+.calnav button{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:none;font-size:22px;line-height:1}
+.calnav button:disabled{opacity:.3}
+.legend{display:flex;gap:16px;margin-top:16px;font-size:13px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:6px}
+.lgd{width:12px;height:12px;border-radius:50%;display:inline-block}
 .sbtns{display:flex;gap:20px}
 .sitem{padding:14px 0;border-bottom:1px solid var(--line)}
 .sname{font-weight:600}
@@ -268,16 +304,93 @@ const restOf=ex=>ex.rest!=null?ex.rest:(/bench|soldier|press|dip|pull|row|squat/
 function repTxt(ex,v){const a=Array.from({length:ex.sets},(_,i)=>tgt(v,i)),mn=Math.min(...a),mx=Math.max(...a);return mn===mx?String(mn):mn+'–'+mx}
 function nextDay(){let best=null,ts=0;for(const k in state.lastDone)if(state.lastDone[k]>ts&&state.days.some(d=>d.id===k)){ts=state.lastDone[k];best=k}
  if(!best)return state.days[0].id;const i=state.days.findIndex(d=>d.id===best);return state.days[(i+1)%state.days.length].id}
-function autoDay(){const busy=state.days.some(d=>d.ex.some(ex=>doneN(ticks(ex))>0));if(!busy)state.day=nextDay()}
+function autoDay(){}
 function canProgress(ex,v,logs){if(v.w==null||v.snoozeW===v.w)return false;const L=logs.slice(0,2);if(L.length<2)return false;
  return L.every(l=>l.w===v.w&&Array.isArray(l.reps)&&l.reps.length>=l.of&&l.reps.every(x=>x>=v.r))}
 function progHTML(ex,v){return `<div class="prog"><span>${v.r}+ reps on every set, two sessions running at ${fmt(v.w)} kg.</span><span class="btns"><button class="alt" data-a="snooze" data-id="${ex.id}">Not now</button><button data-a="progress" data-id="${ex.id}">+2 kg</button></span></div>`}
-function bodyChart(B){const pts=B.slice(0,60).reverse();if(pts.length<2)return'';
- const W=600,H=150,p=14,vals=pts.map(x=>x.kg),mn=Math.min(...vals),mx=Math.max(...vals),span=(mx-mn)||1;
- const xy=pts.map((x,i)=>[p+i*(W-2*p)/(pts.length-1),H-p-(x.kg-mn)*(H-2*p)/span]);
- return `<div class="bchart"><svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="none" role="img" aria-label="Body weight trend"><polyline points="${xy.map(q=>q.join(',')).join(' ')}" fill="none" stroke="var(--purple)" stroke-width="2.5" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg><div class="brange"><span>Low ${fmt(mn)} kg</span><span>High ${fmt(mx)} kg</span></div></div>`}
+function bodyChart(B){if(B.length<2)return'';const R=state.bodyRange||'month',days={week:7,month:30,year:365}[R],now=Date.now(),t0=days?now-days*864e5:B[B.length-1].date;
+ const pts=B.filter(x=>x.date>=t0).slice().reverse();
+ const chips=`<div class="chips" style="margin-top:16px">${[['week','Week'],['month','Month'],['year','Year'],['all','All']].map(([k,l])=>`<button class="chip" data-a="brange" data-r="${k}" aria-pressed="${R===k}">${l}</button>`).join('')}</div>`;
+ if(pts.length<2)return chips+'<p class="hint">Not enough weigh-ins in this period. Try a longer range.</p>';
+ const avg=pts.map(p=>{const w=B.filter(x=>x.date<=p.date&&x.date>p.date-7*864e5);return{t:p.date,y:w.reduce((a,x)=>a+x.kg,0)/w.length}});
+ const ys=pts.map(p=>p.kg).concat(avg.map(a=>a.y));let mn=Math.min(...ys),mx=Math.max(...ys);const pv=Math.max(.3,(mx-mn)*.12);mn-=pv;mx+=pv;
+ const W=600,H=220,px=10,py=10,T0=days?t0:pts[0].date,T1=days?now:pts[pts.length-1].date;
+ const sx=t=>T1===T0?W/2:px+(t-T0)*(W-2*px)/(T1-T0),sy=y=>H-py-(y-mn)*(H-2*py)/(mx-mn);
+ const grid=[.25,.5,.75].map(f=>`<line x1="0" x2="${W}" y1="${py+f*(H-2*py)}" y2="${py+f*(H-2*py)}" stroke="var(--line)"/>`).join('');
+ const raw=`<polyline points="${pts.map(p=>sx(p.date)+','+sy(p.kg)).join(' ')}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linejoin="round"/>`+pts.map(p=>`<circle cx="${sx(p.date)}" cy="${sy(p.kg)}" r="4" fill="var(--muted)"/>`).join('');
+ const av=`<polyline points="${avg.map(a=>sx(a.t)+','+sy(a.y)).join(' ')}" fill="none" stroke="var(--purple)" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+ const kgs=pts.map(p=>p.kg),lo=Math.round(Math.min(...kgs)*10)/10,hi=Math.round(Math.max(...kgs)*10)/10,swing=Math.round((hi-lo)*10)/10,ad=Math.round((avg[avg.length-1].y-avg[0].y)*10)/10;
+ return chips+`<div class="bchart"><svg class="pchart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Body weight chart">${grid}${raw}${av}</svg>
+  <div class="brange"><span>${shortDate(T0)}</span><span>${shortDate(T1)}</span></div>
+  <p class="hint"><span class="lg lg-raw"></span>Daily weigh-ins<span class="lg lg-avg"></span>7-day average</p>
+  <p class="hint">Swing of ${fmt(swing)} kg (low ${fmt(lo)}, high ${fmt(hi)}). Average trend ${ad===0?'flat':(ad>0?'+':'−')+fmt(Math.abs(ad))+' kg'} over this period.</p></div>`}
 const shortDate=ts=>new Date(ts).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});
-function progOptions(){const o=[{key:'__all',label:'Overview',group:'Overall'},{key:'__body',label:'Body weight',group:'Overall'}];
+const RANGES=[['day','Day'],['week','Week'],['month','Month'],['year','Year'],['all','All']];
+function chipsRange(P){return `<div class="chips">${RANGES.map(([k,l])=>`<button class="chip" data-a="prange" data-r="${k}" aria-pressed="${P.range===k}">${l}</button>`).join('')}</div>`}
+const setsOf=it=>it.reps||Array(it.sets).fill(it.r);
+const totReps=it=>setsOf(it).reduce((a,b)=>a+b,0);
+const sVol=s=>s.items.reduce((a,it)=>it.w==null?a:a+it.w*totReps(it),0);
+const cls=d=>d>0?'up':d<0?'down':'same';
+function cmpItem(f,l){if(f.w!=null&&l.w!=null&&f.w!==l.w){const d=Math.round((l.w-f.w)*100)/100;return{d,txt:(d>0?'+':'−')+fmt(Math.abs(d))+' kg'}}
+ const d=totReps(l)-totReps(f);return{d,txt:d===0?'same':(d>0?'+':'−')+Math.abs(d)+' reps'}}
+function dayHTML(P,sel){
+ const head=`<section class="pv"><div class="field"><label class="lbl" for="p-key">Show</label>${sel}</div>${chipsRange(P)}`;
+ if(P.key==='__body'){const B=state.body;if(!B.length)return head+'<p class="empty">No weigh-ins yet.</p></section>';
+  const c=B[0],p=B[1],dd=p?Math.round((c.kg-p.kg)*10)/10:null;
+  return head+`<div class="bw-now pnow"><span class="big">${fmt(c.kg)}</span><span class="u">kg</span></div><p class="hint">${dateLong(c.date)}. ${p?`${dd===0?'Same as':`<b class="${cls(-dd)==='same'?'same':''}">${dd>0?'+':'−'}${fmt(Math.abs(dd))} kg</b> vs`} ${dateLong(p.date)}.`:'Your first weigh-in.'}</p></section>`}
+ if(P.key==='__all'){const S=state.history[0];if(!S)return head+'<p class="empty">Finish a workout and your daily progress shows here.</p></section>';
+  const prev=state.history.slice(1).find(s=>s.day===S.day);
+  const match=it=>{for(const s of state.history.slice(1))for(const x of s.items)if(x.exId===it.exId&&x.name===it.name)return x;return null};
+  const rows=S.items.map(it=>{const o=match(it);return `<li class="crow"><div class="cr-n">${esc(it.name)} <span class="hint">${setsOf(it).join(', ')}${o?'':', first time'}</span></div>${cmpCells(o,it)}</li>`}).join('');
+  const seen=S.items.filter(it=>match(it)).length,up=S.items.filter(it=>{const o=match(it);return o&&cmpItem(o,it).d>0}).length;
+  const sum=`${dateLong(S.date)}. Each exercise is compared with the last time you did it${seen?`: ${up} of ${seen} improved`:''}.`;
+  return head+`<div class="bw-now pnow"><span class="big">${esc(S.dayName)}</span></div><p class="hint">${sum}</p><ul class="s-items olist">${rows}</ul></section>`}
+ const cut=P.key.indexOf('|'),id=P.key.slice(0,cut),name=P.key.slice(cut+1),L=[];
+ for(const s of state.history)for(const it of s.items)if(it.exId===id&&it.name===name)L.push(Object.assign({date:s.date},it));
+ if(!L.length)return head+'<p class="empty">Finish a workout with this exercise to see it here.</p></section>';
+ const l=L[0],f=L[1],ls=setsOf(l),fs=f?setsOf(f):[],c=f?cmpItem(f,l):null;
+ const rows=ls.map((r,i)=>{const o=fs[i],d=o==null?null:r-o;return `<li><span>Set ${i+1}</span><span class="v">${r} reps${o==null?'':` <span class="hint">was ${o}</span><b class="${cls(d)}">${d===0?'same':(d>0?'+':'−')+Math.abs(d)}</b>`}</span></li>`}).join('');
+ return head+`<div class="bw-now pnow"><span class="big">${l.w==null?'BW':fmt(l.w)}</span><span class="u">${l.w==null?'':'kg'}</span></div>
+  <p class="hint">${dateLong(l.date)}. ${f?`Compared with ${dateLong(f.date)}${f.w!=null&&l.w!=null&&f.w!==l.w?` at ${fmt(f.w)} kg`:''}: <b class="${cls(c.d)}">${c.txt}</b>.`:'First time logged, so there’s nothing to compare yet.'}</p>
+  ${cmpCells(f||null,l)}
+  <ul class="s-items olist">${rows}</ul></section>`}
+function cmpCells(o,it){const dw=o&&o.w!=null&&it.w!=null?Math.round((it.w-o.w)*100)/100:null,ds=o?it.sets-o.sets:null,dr=o?totReps(it)-totReps(o):null;
+ const cell=(lab,val,d,u)=>`<span class="cc"><span class="cc-l">${lab}</span><span class="cc-v">${val}</span>${d==null?'':`<b class="${cls(d)}">${d===0?'same':(d>0?'+':'−')+fmt(Math.abs(d))+(u||'')}</b>`}</span>`;
+ return `<div class="cmp">${cell('Weight',it.w==null?'BW':fmt(it.w)+' kg',dw,' kg')}${cell('Sets',it.sets,ds)}${cell('Total reps',totReps(it),dr)}</div>`}
+const dkey=ts=>{const d=new Date(ts);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()};
+const tIdx=id=>{const i=state.days.findIndex(d=>d.id===id);return(i<0?0:i)%3};
+function attMap(){const m={};for(const s of state.history){const k=dkey(s.date);(m[k]=m[k]||[]).push(s)}return m}
+function calCell(dt,map,num,extra){const k=dkey(dt),ss=map[k],td=k===dkey(Date.now());
+ return `<span class="cal-d${ss?' t'+tIdx(ss[0].day):''}${td?' today':''}${extra||''}" title="${dt.toLocaleDateString()}${ss?': '+esc(ss.map(s=>s.dayName).join(', ')):''}">${num?dt.getDate():''}</span>`}
+function monthGrid(y,m,map,mini){const st=(new Date(y,m,1).getDay()+6)%7,n=new Date(y,m+1,0).getDate();let h='';
+ for(let i=0;i<st;i++)h+='<span></span>';for(let d=1;d<=n;d++)h+=calCell(new Date(y,m,d),map,!mini);
+ return `<div class="cal${mini?' mini':''}">${mini?'':['M','T','W','T','F','S','S'].map(x=>`<span class="cal-h">${x}</span>`).join('')}${h}</div>`}
+function yearGrid(y,map){return `<div class="yr">${Array.from({length:12},(_,i)=>`<div><span class="yr-m">${new Date(y,i,1).toLocaleDateString(undefined,{month:'short'})}</span>${monthGrid(y,i,map,true)}</div>`).join('')}</div>`}
+function attHTML(P,sel){
+ const off=P.attOff||0,map=attMap(),now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+ const legend=`<div class="legend">${state.days.map(d=>`<span><i class="lgd t${tIdx(d.id)}"></i>${esc(d.name)}</span>`).join('')}</div>`;
+ const head=`<section class="pv"><div class="field"><label class="lbl" for="p-key">Show</label>${sel}</div>${chipsRange(P)}`;
+ if(P.range==='day'){const ss=map[dkey(today)],last=state.history[0];
+  return head+`<div class="bw-now pnow"><span class="big">${ss?esc(ss.map(s=>s.dayName).join(' + ')):'Rest day'}</span></div><p class="hint">${ss?'Workout logged today.':last?`Nothing logged today. Last workout: ${esc(last.dayName)}, ${ago(last.date)}.`:'No workouts logged yet.'}</p>${legend}</section>`}
+ let start,end,label='',grid='';
+ if(P.range==='week'){start=new Date(today);start.setDate(today.getDate()-((today.getDay()+6)%7)+off*7);end=new Date(start);end.setDate(start.getDate()+7);
+  const last=new Date(end);last.setDate(end.getDate()-1);
+  label=`${start.toLocaleDateString(undefined,{day:'numeric',month:'short'})} – ${last.toLocaleDateString(undefined,{day:'numeric',month:'short'})}`;
+  grid=`<div class="wk">${Array.from({length:7},(_,i)=>{const dt=new Date(start);dt.setDate(start.getDate()+i);const ss=map[dkey(dt)];
+   return `<div class="wk-c"><span class="wk-l">${dt.toLocaleDateString(undefined,{weekday:'short'})}</span>${calCell(dt,map,true,' wk-d')}<span class="wk-n">${ss?esc(ss.map(s=>s.dayName).join(', ')):''}</span></div>`}).join('')}</div>`}
+ else if(P.range==='month'){start=new Date(today.getFullYear(),today.getMonth()+off,1);end=new Date(start.getFullYear(),start.getMonth()+1,1);
+  label=start.toLocaleDateString(undefined,{month:'long',year:'numeric'});grid=monthGrid(start.getFullYear(),start.getMonth(),map,false)}
+ else if(P.range==='year'){const y=today.getFullYear()+off;start=new Date(y,0,1);end=new Date(y+1,0,1);label=String(y);grid=yearGrid(y,map)}
+ else{const fy=state.history.length?new Date(state.history[state.history.length-1].date).getFullYear():today.getFullYear();start=new Date(fy,0,1);end=new Date(today.getTime()+864e5);
+  for(let y=today.getFullYear();y>=fy;y--)grid+=`<h3 class="yr-h">${y}</h3>${yearGrid(y,map)}`}
+ const sess=state.history.filter(s=>s.date>=start.getTime()&&s.date<end.getTime());
+ const elapsed=Math.max(1,(Math.min(end.getTime(),today.getTime()+864e5)-start.getTime())/864e5);
+ const counts=state.days.map(d=>`${esc(d.name)} ${sess.filter(s=>s.day===d.id).length}`).join(', ');
+ const pw=Math.round(sess.length/(elapsed/7)*10)/10;
+ const nav=P.range==='all'?'':`<div class="calnav"><button data-a="attnav" data-d="-1" aria-label="Previous">‹</button><span>${label}</span><button data-a="attnav" data-d="1" aria-label="Next" ${off>=0?'disabled':''}>›</button></div>`;
+ return head+nav+`<div class="bw-now pnow"><span class="big">${sess.length}</span><span class="u">${sess.length===1?'workout':'workouts'}</span></div>
+  <p class="hint">${counts}.${P.range!=='week'&&sess.length?` About ${pw} a week.`:''}</p>${grid}${legend}</section>`}
+function progOptions(){const o=[{key:'__all',label:'Overview',group:'Overall'},{key:'__att',label:'Attendance',group:'Overall'},{key:'__body',label:'Body weight',group:'Overall'}];
  state.days.forEach(d=>d.ex.forEach(ex=>ex.variants.forEach(v=>o.push({key:ex.id+'|'+v.name,label:v.name,group:d.name,ex,v}))));return o}
 function progSeries(key,metric){
  if(key==='__body')return{pts:state.body.map(x=>({t:x.date,y:x.kg})).reverse(),unit:'kg'};
@@ -299,7 +412,7 @@ function progressHTML(){const P=state.prog||(state.prog={key:'',range:'month',me
  if(!opts.some(o=>o.key===P.key))P.key='__all';
  const groups=[...new Set(opts.map(o=>o.group))];
  const sel=`<select id="p-key" class="text">${groups.map(g=>`<optgroup label="${esc(g)}">${opts.filter(o=>o.group===g).map(o=>`<option value="${esc(o.key)}"${o.key===P.key?' selected':''}>${esc(o.label)}</option>`).join('')}</optgroup>`).join('')}</select>`;
- const isBody=P.key==='__body';if(P.key==='__all')return overviewHTML(P,sel);
+ const isBody=P.key==='__body';if(P.key==='__att')return attHTML(P,sel);if(P.range==='day')return dayHTML(P,sel);if(P.key==='__all')return overviewHTML(P,sel);
  const S=progSeries(P.key,isBody?'weight':P.metric);
  const days={week:7,month:30,year:365}[P.range],now=Date.now();
  const t0=days?now-days*864e5:(S.pts[0]?S.pts[0].t:now),pts=S.pts.filter(p=>p.t>=t0);
@@ -310,7 +423,7 @@ function progressHTML(){const P=state.prog||(state.prog={key:'',range:'month',me
   summary=`${dd===0?'No change':`${dd>0?'+':'\u2212'}${fmt(Math.abs(dd))} ${S.unit}`} ${rangeTxt}, ${pts.length} ${isBody?'weigh-ins':'sessions'}. Best ${fmt(best)} ${S.unit}.`;
   chart=progChart(pts,days?t0:pts[0].t,now)}
  const cur=pts.length?pts[pts.length-1].y:null;
- const ranges=[['week','Week'],['month','Month'],['year','Year'],['all','All']];
+ const ranges=RANGES;
  return `<section class="pv">
   <div class="field"><label class="lbl" for="p-key">Show</label>${sel}</div>
   <div class="chips">${ranges.map(([k,l])=>`<button class="chip" data-a="prange" data-r="${k}" aria-pressed="${P.range===k}">${l}</button>`).join('')}</div>
@@ -325,7 +438,7 @@ function overviewHTML(P,sel){
  const days={week:7,month:30,year:365}[P.range],now=Date.now();
  const t0=days?now-days*864e5:(state.history.length?state.history[state.history.length-1].date:now);
  const rangeTxt={week:'last 7 days',month:'last 30 days',year:'last 12 months',all:'since you started'}[P.range];
- const ranges=[['week','Week'],['month','Month'],['year','Year'],['all','All']];
+ const ranges=RANGES;
  const sess=state.history.filter(s=>s.date>=t0).slice().reverse();
  const vol=s=>s.items.reduce((a,it)=>it.w==null?a:a+it.w*(it.reps||Array(it.sets).fill(it.r)).reduce((x,y)=>x+y,0),0);
  const total=Math.round(sess.reduce((a,s)=>a+vol(s),0));
@@ -335,7 +448,7 @@ function overviewHTML(P,sel){
   const f=L[L.length-1],l=L[0],tr=it=>(it.reps||Array(it.sets).fill(it.r)).reduce((x,y)=>x+y,0);let r;
   if(f.w!=null&&l.w!=null&&f.w!==l.w){const d=Math.round((l.w-f.w)*100)/100;r={pre:'',from:fmt(f.w),to:fmt(l.w)+' kg',d,txt:(d>0?'+':'−')+fmt(Math.abs(d))+' kg',score:d*10}}
   else{const a=tr(f),z=tr(l),d=z-a;r={pre:l.w==null?'':fmt(l.w)+' kg: ',from:a,to:z+' reps',d,txt:d===0?'same':(d>0?'+':'−')+Math.abs(d)+' reps',score:d}}
-  rows.push(Object.assign({label:o.label,group:o.group},r))});
+  rows.push(Object.assign({label:o.label,group:o.group,f:L.length>1?f:null,l},r))});
  rows.sort((x,y)=>y.score-x.score);
  const up=rows.filter(r=>r.d>0).length;
  const B=state.body.filter(x=>x.date>=t0);let bodyTxt='';
@@ -348,7 +461,7 @@ function overviewHTML(P,sel){
   <div class="bw-now pnow"><span class="big">${sess.length}</span><span class="u">${sess.length===1?'workout':'workouts'}</span></div>
   <p class="hint">${sess.length?`${lead}: about ${perWeek} a week, ${total.toLocaleString()} kg moved.${rows.length?` ${up} of ${rows.length} lifts went up.`:''}${bodyTxt}`:'No workouts in this period yet. Finish one and it’ll show up here.'}</p>
   ${chart?`${chart}<p class="hint">Each dot is one workout’s total volume (weight × reps).</p>`:''}
-  ${rows.length?`<ul class="s-items olist">${rows.map(r=>`<li><span>${esc(r.label)} <span class="hint">${esc(r.group)}</span></span><span class="v">${r.pre}${r.from} → ${r.to}<b class="${r.d>0?'up':r.d<0?'down':'same'}">${r.txt}</b></span></li>`).join('')}</ul>`:''}
+  ${rows.length?`<p class="hint" style="margin-top:18px">Each exercise: your first session in this period compared with your latest.</p><ul class="s-items olist">${rows.map(r=>`<li class="crow"><div class="cr-n">${esc(r.label)} <span class="hint">${esc(r.group)}</span></div>${cmpCells(r.f,r.l)}</li>`).join('')}</ul>`:''}
  </section>`}
 function bodyHTML(){const B=state.body,cur=B[0],prev=B[1];
  let chg='';if(cur&&prev){const dd=Math.round((cur.kg-prev.kg)*10)/10;chg=dd===0?'No change since last entry':`${dd>0?'+':'−'}${fmt(Math.abs(dd))} kg since last entry`}
@@ -405,7 +518,7 @@ function render(){
  const d=day();let done=0,total=0;
  d.ex.forEach(e=>{const t=ticks(e);total+=t.length;done+=doneN(t)});const nx=nextDay();
  const today=new Date().toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'});
- const tabs=state.days.map(x=>`<button class="tab${x.id===nx?' next':''}" role="tab" data-a="day" data-day="${x.id}" aria-selected="${state.view==='log'&&x.id===d.id}">${esc(x.name)}</button>`).join('');
+ const tabs=state.days.map(x=>`<button class="tab" role="tab" data-a="day" data-day="${x.id}" aria-selected="${state.view==='log'&&x.id===d.id}">${esc(x.name)}</button>`).join('');
  let body='';
  if(state.view==='history'){
   body=`<section class="hist">${state.history.length?state.history.map(s=>`<details class="s"><summary><span class="s-day">${esc(s.dayName)}</span><span class="s-date">${dateLong(s.date)}, ${s.items.length} exercises</span></summary>
@@ -417,7 +530,7 @@ function render(){
   body=progressHTML();
  }else{
   const lastD=ago(state.lastDone[d.id]);
-  body=`<div class="meta"><span>${d.id===nx?'<b class="nextlbl">Next up.</b> ':''}${lastD?'Last done '+lastD:'Not logged yet'}</span><span><b>${done}</b> of ${total} sets</span></div>
+  body=`<div class="meta"><span>${lastD?'Last done '+lastD:'Not logged yet'}</span><span><b>${done}</b> of ${total} sets</span></div>
   <div class="progress"><i style="width:${total?done/total*100:0}%"></i></div>
   ${state.tipReps?'':'<p class="tip">Tap a set to log your target reps. Tap it again to enter what you actually did.</p>'}
   <section class="list">${d.ex.map(exHTML).join('')}</section>
@@ -450,12 +563,12 @@ function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show'
 
 function finish(){
  const d=day(),items=[];
- d.ex.forEach(ex=>{const t=ticks(ex),n=doneN(t);if(n){const v=act(ex);items.push({exId:ex.id,name:v.name,w:v.w,r:v.r,reps:t.filter(x=>x!=null),sets:n,of:ex.sets});v.rs=Array.from({length:ex.sets},(_,i)=>t[i]!=null?Math.max(t[i],tgt(v,i)):tgt(v,i))}});
+ d.ex.forEach(ex=>{const t=ticks(ex),n=doneN(t);if(n){const v=act(ex);items.push({exId:ex.id,name:v.name,w:v.w,r:v.r,reps:t.filter(x=>x!=null),sets:n,of:ex.sets});v.rs=Array.from({length:ex.sets},(_,i)=>t[i]!=null?t[i]:tgt(v,i))}});
  if(!items.length){toast('Tick at least one set first');return}
  state.history.unshift({id:uid8(),day:d.id,dayName:d.name,date:Date.now(),items});
  if(state.history.length>400)state.history.length=400;
  d.ex.forEach(ex=>{if(ex.rotate&&ex.variants.length>1&&items.some(i=>i.exId===ex.id))ex.active=(ex.active+1)%ex.variants.length;delete state.ticks[ex.id]});
- state.lastDone[d.id]=Date.now();stopTimer();keepAwake(false);save();render();window.scrollTo({top:0});toast(`${d.name} saved. Next up: ${(state.days.find(x=>x.id===nextDay())||{}).name||''}`)}
+ state.lastDone[d.id]=Date.now();stopTimer();keepAwake(false);save();render();window.scrollTo({top:0});toast(`${d.name} saved`)}
 
 /* editor sheet */
 function openEditor(id){editing=id;renderSheet()}
@@ -540,7 +653,9 @@ document.addEventListener('click',e=>{
  if(a==='progress'){const ex=findEx(b.dataset.id).e,v=act(ex);if(v.w==null)return;v.w=Math.round((v.w+2)*100)/100;v.rs=null;save();render();toast(`${v.name} now ${fmt(v.w)} kg, sets reset to ${v.r} reps`);return}
  if(a==='snooze'){const v=act(findEx(b.dataset.id).e);v.snoozeW=v.w;save();render();return}
  if(a==='pview'){state.view=state.view==='progress'?'log':'progress';save();render();window.scrollTo({top:0});return}
- if(a==='prange'){state.prog.range=b.dataset.r;save();render();return}
+ if(a==='prange'){state.prog.range=b.dataset.r;state.prog.attOff=0;save();render();return}
+ if(a==='attnav'){state.prog.attOff=Math.min(0,(state.prog.attOff||0)+(+b.dataset.d));save();render();return}
+ if(a==='brange'){state.bodyRange=b.dataset.r;save();render();return}
  if(a==='pmetric'){state.prog.metric=b.dataset.m;save();render();return}
  if(a==='body'){state.view=state.view==='body'?'log':'body';bodyDraft=null;save();render();return}
  if(a==='bstep'){const cur=bodyDraft!=null?bodyDraft:(state.body[0]?state.body[0].kg:75);bodyDraft=Math.round((cur+(+b.dataset.d)*0.1)*10)/10;const inp=$('#bw-in');if(inp)inp.value=fmt(bodyDraft);return}
